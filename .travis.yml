@@ -4,5 +4,6 @@ python:
 script:
   - python test_script.py
 before_install:
+  - sudo apt-get install gcc-multilib
   - gcc --version
   - python --version
