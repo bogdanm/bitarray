@@ -28,7 +28,7 @@ static int testit(ba_size_t num_elements, uint8_t element_size, unsigned passes,
     uint64_t *exp = NULL, t64;
     unsigned pass;
     ba_size_t i;
-    ba_element_t t;
+    ba_element_t t, maxv;
     int res = 0;
     ba_array_t ba;
 
@@ -43,6 +43,10 @@ static int testit(ba_size_t num_elements, uint8_t element_size, unsigned passes,
         res = 1;
         goto done;
     }
+    // Compute max value of ba_element_t
+    maxv = ((ba_element_t)1 << element_size) - 1;
+    if (maxv == 0) // overflow
+        maxv = (ba_element_t)~0;
     ba_init(&ba, storage, num_elements, element_size);
     for (pass = 0; pass < passes; pass ++) {
         srand(time(NULL));
@@ -51,10 +55,10 @@ static int testit(ba_size_t num_elements, uint8_t element_size, unsigned passes,
             if (i == 0) // force lowest value
                 t64 = 0;
             else if (i == num_elements - 1) // force highest value
-                t64 = ((uint64_t)1 << element_size) - 1;
+                t64 = maxv;
             else
                 t64 = (uint64_t)rand() % ((uint64_t)1 << element_size);
-            exp[i] = t64;
+            exp[i] = (ba_element_t)t64;
             ba_set(&ba, i, (ba_element_t)t64);
         }
         // Read back
@@ -64,6 +68,7 @@ static int testit(ba_size_t num_elements, uint8_t element_size, unsigned passes,
                 res = 1;
                 if (verbose)
                     printf("ERROR (forward) at index %u: expected %" PRIu64 ", got %" PRIu64 "\n", (unsigned)i, (uint64_t)exp[i], (uint64_t)t);
+                goto done;
             }
         }
         // Fill the array backward
@@ -71,10 +76,10 @@ static int testit(ba_size_t num_elements, uint8_t element_size, unsigned passes,
             if (i == num_elements) // force lowest value
                 t64 = 0;
             else if (i == 1) // force highest value
-                t64 = ((uint64_t)1 << element_size) - 1;
+                t64 = maxv;
             else
                 t64 = (uint64_t)rand() % ((uint64_t)1 << element_size);
-            exp[i - 1] = t64;
+            exp[i - 1] = (ba_element_t)t64;
             ba_set(&ba, i - 1, (ba_element_t)t64);
         }
         // Read back
@@ -84,6 +89,7 @@ static int testit(ba_size_t num_elements, uint8_t element_size, unsigned passes,
                 res = 1;
                 if (verbose)
                     printf("ERROR (backward) at index %u: expected %" PRIu64 ", got %" PRIu64 "\n", (unsigned)i - 1, (uint64_t)exp[i - 1], (uint64_t)t);
+                goto done;
             }
         }
     }

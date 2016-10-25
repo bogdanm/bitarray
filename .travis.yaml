@@ -1,0 +1,8 @@
+python:
+  - "2.7"
+
+script:
+  - python test_script.py
+before_install:
+  - gcc --version
+  - python --version

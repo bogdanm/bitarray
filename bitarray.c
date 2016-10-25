@@ -15,6 +15,7 @@
  */
 
 #include <stdint.h>
+#include <inttypes.h>
 #include "bitarray.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +54,7 @@ static int compute_next(bitdesc_t *pdesc) {
     // Compute mask for "crt_bits"
     pdesc->mask = ((ba_unit_t)1 << crt_bits) - 1;
     if (pdesc->mask == 0) // this must be an overflow on the 'ba_unit_t' type, so recompute
-        pdesc->mask = ~(ba_unit_t)0;
+        pdesc->mask = (ba_element_t)~0;
     // Compute shifts for the storage
     pdesc->st_shift = pdesc->bit_pos + 1 - crt_bits;
     // Update remaining bits
@@ -86,7 +87,7 @@ void ba_set(const ba_array_t *ba, ba_size_t idx, ba_element_t data) {
         // Read whole element in the storage
         t = ba->data[bd.idx];
         // Mask out the parts the won't change
-        t = t & (ba_unit_t)~(bd.mask << bd.st_shift);
+        t = t & (ba_unit_t)~((ba_unit_t)bd.mask << bd.st_shift);
         // Get the relevant part of 'data'
         e = (ba_unit_t)((data >> bd.left_bits) & bd.mask);
         // Write back data (properly shifted)
@@ -111,4 +112,30 @@ ba_element_t ba_get(const ba_array_t *ba, ba_size_t idx) {
     }
     return data;
 }
+
+#ifdef TESTME
+uint64_t storage[1000];
+
+int main() {
+    ba_array_t ba;
+
+    ba_init(&ba, storage, 22, 3);
+    ba_set(&ba, 0, 6);
+    printf("%016llX\n", storage[0]);
+    ba_set(&ba, 10, 3);
+    printf("%016llX\n", storage[0]);
+    printf("%d\n", ba_get(&ba, 0));
+    return 0;
+    for (unsigned j = 0; j < 22; j ++)
+    {
+        printf("*** SET %u\n", j);
+        ba_set(&ba, j, j % 7);
+        for (unsigned i = 0; i < 22; i ++) {
+            printf("[%u]=%d ", (unsigned)i, ba_get(&ba, i));
+            if (i == 21)
+                printf("\n");
+        }
+    }
+}
+#endif
 
