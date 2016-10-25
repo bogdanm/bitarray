@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bogdanm/bitarray.svg?branch=master)](https://travis-ci.org/bogdanm/bitarray)
+
 # Bit array
 
 The bit array is an array that holds elements of equal size. Unlike a regular (C/C++) array, its elements can have any size between 1 bit and 64 bits (see the next paragraph for more details). The array's elements are contiguous in memory, so an array of 10 3-bit elements will need 4 bytes of storage (rounded up from 30 bits to a multiple of 8 bits). This makes the bit array useful for applications where lots of elements of unusual size (not a multiple of 8 bits) need to be packed efficiently.
